@@ -1,4 +1,5 @@
 pragma solidity >=0.4.22 <0.6.0;
+
 contract Ballot {
 
     struct Voter {
@@ -21,23 +22,7 @@ contract Ballot {
         voters[chairperson].weight = 1;
         proposals.length = _numProposals;
     }
-
-    /// Delegate your vote to the voter $(to).
-    function delegate(address to) public {
-        Voter storage sender = voters[msg.sender]; // assigns reference
-        require(!sender.voted, "`to` has voted");
-        while (voters[to].delegate != address(0) && voters[to].delegate != msg.sender)
-            to = voters[to].delegate;
-        require(to != msg.sender,"cannot delegate to self");
-        sender.voted = true;
-        sender.delegate = to;
-        Voter storage delegateTo = voters[to];
-        if (delegateTo.voted)
-            proposals[delegateTo.vote].voteCount += sender.weight;
-        else
-            delegateTo.weight += sender.weight;
-    }
-
+    
     /// Give a single vote to proposal $(toProposal).
     function vote(uint8 toProposal) public {
         Voter storage sender = voters[msg.sender];

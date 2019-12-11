@@ -3,9 +3,10 @@ import logo from "./logo.png";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Form, Button, Spinner, Alert } from "react-bootstrap";
-import web3 from "./web3";
+import Web3 from "web3";
 
-const CONTRACT = "0x0C7704aD8316156C65F6DD040100796872C18B37";
+const CONTRACT = "0x545B536ec83E473BC79480A0d05Fe991122E921a";
+let web3 = window.web3;
 
 class App extends React.Component {
   state = {
@@ -18,7 +19,28 @@ class App extends React.Component {
   }
 
   componentWillMount() {
-    this.winningProposal();
+    window.addEventListener("load", async () => {
+      if (window.ethereum) {
+        console.log("init metamask", window.ethereum);
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.enable();
+        web3.eth.getAccounts(function(err, accounts) {
+          web3.eth.defaultAccount = accounts[0];
+        });
+      } else {
+        console.log("inject sdk");
+        web3 = new Web3(
+          new Web3.providers.HttpProvider("http://localhost:8545")
+        );
+        // 添加Ganache第一个账户的私钥
+        web3.eth.accounts.wallet.add(
+          "0xa069355cac7049d6eef6103425d0e36482dfc3a7db0a7482328edefbf05e353d"
+        );
+
+        web3.eth.defaultAccount = "0x0660987691f85054AeA037E761DcCA723E2a99A4";
+      }
+      this.winningProposal();
+    });
   }
 
   winningProposal = async () => {
@@ -51,7 +73,6 @@ class App extends React.Component {
 
     try {
       await web3.eth.sendTransaction({
-        from: web3.eth.defaultAccount,
         to: CONTRACT, // contract address
         data: funcSig + param.slice(2),
         gas: 2000000
